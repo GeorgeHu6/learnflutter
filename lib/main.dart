@@ -1,7 +1,6 @@
 import 'package:flukit/flukit.dart';
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
-import 'package:flutter/rendering.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,6 +38,7 @@ class HomePage extends StatelessWidget {
   }
 }
 
+// 主界面的列表Widget
 class HomePageList extends StatelessWidget {
   const HomePageList({Key? key}) : super(key: key);
 
@@ -58,7 +58,7 @@ class HomePageList extends StatelessWidget {
         },
       ),
       ListTile(
-        title: const Text("LazyList"),
+        title: const Text("WordList"),
         trailing: const Icon(Icons.alarm_add_outlined),
         onTap: () {
           Navigator.push(
@@ -68,26 +68,76 @@ class HomePageList extends StatelessWidget {
             ),
           );
         },
+      ),
+      ListTile(
+        title: const Text("SingleChildScrollView"),
+        trailing: const Icon(Icons.interests_rounded),
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const SingleChildScrollViewDemo()));
+        },
       )
     ]);
   }
 }
 
-class LazyListPage extends StatelessWidget {
+class SingleChildScrollViewDemo extends StatelessWidget {
+  const SingleChildScrollViewDemo({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    String str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("SingleChildScrollView"),
+      ),
+      body: Scrollbar(
+        // 显示进度条
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: Column(
+              //动态创建一个List<Widget>
+              children: str
+                  .split("")
+                  //每一个字母都用一个Text显示,字体为原来的两倍
+                  .map((c) => Text(
+                        c,
+                        textScaleFactor: 2.0,
+                      ))
+                  .toList(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LazyListPage extends StatefulWidget {
   const LazyListPage({Key? key}) : super(key: key);
 
+  @override
+  _LazyListPageState createState() => _LazyListPageState();
+}
+
+class _LazyListPageState extends State<LazyListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('LazyList'),
+        title: const Text('WordList'),
       ),
-      body: InfiniteListView(),
+      body: const InfiniteListView(),
     );
   }
 }
 
 class InfiniteListView extends StatefulWidget {
+  const InfiniteListView({Key? key}) : super(key: key);
+
   @override
   _InfiniteListViewState createState() => _InfiniteListViewState();
 }
@@ -141,7 +191,7 @@ class _InfiniteListViewState extends State<InfiniteListView> {
       separatorBuilder: (context, index) {
         print("Separator added at $index");
         return const Divider(height: .0);
-        },
+      },
     );
   }
 
@@ -312,7 +362,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
   */
-  /*
+/*
   Widget redBox = const DecoratedBox(
     decoration: BoxDecoration(color: Colors.red),
   );
