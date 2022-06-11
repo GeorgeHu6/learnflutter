@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flukit/flukit.dart';
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -78,10 +81,82 @@ class HomePageList extends StatelessWidget {
               MaterialPageRoute(
                   builder: (context) => const SingleChildScrollViewDemo()));
         },
+      ),
+      ListTile(
+        title: const Text("OnlineImage"),
+        trailing: const Icon(Icons.image_outlined),
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ShowImage()));
+        },
       )
     ]);
   }
 }
+
+class ShowImage extends StatelessWidget {
+  const ShowImage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("ImageGallery"),
+      ),
+      body: ImagesPage(),
+    );
+  }
+}
+
+class ImagesPage extends StatefulWidget {
+  @override
+  _ImagesPage createState() => _ImagesPage();
+  
+}
+
+class _ImagesPage extends State<ImagesPage> {
+  List data = [];
+  List imageUrl = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDataOnline();
+
+  }
+
+  Future<String> fetchDataOnline() async {
+    var jsonData = await http.get(Uri.parse("https://raw.githubusercontent.com/GeorgeHu6/learnflutter/main/static/image_list.json"));
+    var fetchData = jsonDecode(jsonData.body);
+
+    print(fetchData);
+
+    setState(() {
+      data = fetchData;
+      data.forEach((element) {
+        imageUrl.add(element);
+      });
+    });
+
+    return "OK";
+  }
+
+    @override
+    Widget build(BuildContext context) {
+      return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+          itemCount: imageUrl.length,
+          itemBuilder: (BuildContext context, int index) {
+            return Image.network(
+              imageUrl[index],
+              fit: BoxFit.fitWidth
+            );
+          }
+        );
+    }
+  }
 
 class SingleChildScrollViewDemo extends StatelessWidget {
   const SingleChildScrollViewDemo({Key? key}) : super(key: key);
