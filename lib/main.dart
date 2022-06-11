@@ -124,7 +124,6 @@ class _ImagesPage extends State<ImagesPage> {
   void initState() {
     super.initState();
     fetchDataOnline();
-
   }
 
   Future<String> fetchDataOnline() async {
@@ -134,7 +133,7 @@ class _ImagesPage extends State<ImagesPage> {
     print(fetchData);
 
     setState(() {
-      data = fetchData;
+      data = fetchData["images"];
       data.forEach((element) {
         imageUrl.add(element);
       });
