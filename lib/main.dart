@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flukit/flukit.dart';
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
+import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -86,13 +87,126 @@ class HomePageList extends StatelessWidget {
         title: const Text("OnlineImage"),
         trailing: const Icon(Icons.image_outlined),
         onTap: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const ShowImage()));
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const ShowImage()));
+        },
+      ),
+      ListTile(
+        title: const Text("PointerDown Event test"),
+        trailing: const Icon(Icons.arrow_upward_outlined),
+        onTap: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => PointerDownEventPage()));
+        },
+      ),
+      ListTile(
+        title: const Text("Watermask Sample"),
+        trailing: const Icon(Icons.arrow_upward_outlined),
+        onTap: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => eventSamplePage()));
         },
       )
     ]);
+  }
+}
+
+class eventSamplePage extends StatelessWidget {
+  const eventSamplePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("PointerDownEvent"),
+      ),
+      body: WaterMaskTest(),
+    );
+  }
+}
+
+class WaterMaskTest extends StatelessWidget {
+  const WaterMaskTest({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        HitTestBlocker(child: wChild(1, Colors.white, 200)),
+        HitTestBlocker(child: wChild(2, Colors.black, 200))
+        // IgnorePointer(
+        //   child: WaterMark(
+        //     painter: TextWaterMarkPainter(text: 'wendux', rotate: -20),
+        //   ),
+        // )
+        
+      ],
+    );
+  }
+
+  Widget wChild(int index, color, double size) {
+    return Listener(
+      onPointerDown: (e) => print(index),
+      child: Container(
+        width: size,
+        height: size,
+        color: Colors.grey,
+      ),
+    );
+  }
+}
+
+class PointerDownListener extends SingleChildRenderObjectWidget {
+  PointerDownListener({Key? key, this.onPointerDown, Widget? child})
+      : super(key: key, child: child);
+
+  final PointerDownEventListener? onPointerDown;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      RenderPointerDownListener()..onPointerDown = onPointerDown;
+
+  @override
+  void updateRenderObject(
+      BuildContext context, RenderPointerDownListener renderObject) {
+    renderObject.onPointerDown = onPointerDown;
+  }
+}
+
+class RenderPointerDownListener extends RenderProxyBox {
+  PointerDownEventListener? onPointerDown;
+
+  @override
+  bool hitTestSelf(Offset position) => true; //始终通过命中测试
+
+  @override
+  void handleEvent(PointerEvent event, covariant HitTestEntry entry) {
+    //事件分发时处理事件
+    if (event is PointerDownEvent) onPointerDown?.call(event);
+  }
+}
+
+class PointerDownEventPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("PointerDownEvent"),
+      ),
+      body: PointerDownListenerRoute(),
+    );
+  }
+}
+
+class PointerDownListenerRoute extends StatelessWidget {
+  const PointerDownListenerRoute({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return PointerDownListener(
+      child: Text('Click me'),
+      onPointerDown: (e) => print('down'),
+    );
   }
 }
 
@@ -113,7 +227,6 @@ class ShowImage extends StatelessWidget {
 class ImagesPage extends StatefulWidget {
   @override
   _ImagesPage createState() => _ImagesPage();
-  
 }
 
 class _ImagesPage extends State<ImagesPage> {
@@ -127,7 +240,8 @@ class _ImagesPage extends State<ImagesPage> {
   }
 
   Future<String> fetchDataOnline() async {
-    var jsonData = await http.get(Uri.parse("https://raw.githubusercontent.com/GeorgeHu6/learnflutter/main/static/image_list.json"));
+    var jsonData = await http.get(Uri.parse(
+        "https://raw.githubusercontent.com/GeorgeHu6/learnflutter/main/static/image_list.json"));
     var fetchData = jsonDecode(jsonData.body);
 
     print(fetchData);
@@ -142,20 +256,17 @@ class _ImagesPage extends State<ImagesPage> {
     return "OK";
   }
 
-    @override
-    Widget build(BuildContext context) {
-      return GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-          itemCount: imageUrl.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Image.network(
-              imageUrl[index],
-              fit: BoxFit.fitWidth
-            );
-          }
-        );
-    }
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+        gridDelegate:
+            SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+        itemCount: imageUrl.length,
+        itemBuilder: (BuildContext context, int index) {
+          return Image.network(imageUrl[index], fit: BoxFit.fitWidth);
+        });
   }
+}
 
 class SingleChildScrollViewDemo extends StatelessWidget {
   const SingleChildScrollViewDemo({Key? key}) : super(key: key);
@@ -381,6 +492,69 @@ class _AfterLayoutRouteState extends State<AfterLayoutRoute> {
       ],
     );
   }
+}
+
+class HitTestBlocker extends SingleChildRenderObjectWidget {
+  HitTestBlocker({
+    Key? key,
+    this.up = true,
+    this.down = false,
+    this.self = false,
+    Widget? child,
+  }) : super(key: key, child: child);
+
+  /// up 为 true 时 , `hitTest()` 将会一直返回 false.
+  final bool up;
+
+  /// down 为 true 时, 将不会调用 `hitTestChildren()`.
+  final bool down;
+
+  /// `hitTestSelf` 的返回值
+  final bool self;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return RenderHitTestBlocker(up: up, down: down, self: self);
+  }
+
+  @override
+  void updateRenderObject(
+      BuildContext context, RenderHitTestBlocker renderObject) {
+    renderObject
+      ..up = up
+      ..down = down
+      ..self = self;
+  }
+}
+
+class RenderHitTestBlocker extends RenderProxyBox {
+  RenderHitTestBlocker({this.up = true, this.down = true, this.self = true});
+
+  bool up;
+  bool down;
+  bool self;
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+   
+    bool hitTestDownResult = false;
+
+    if (!down) {
+      hitTestDownResult = hitTestChildren(result, position: position);
+    }
+
+    bool pass =
+        hitTestSelf(position) || (hitTestDownResult && size.contains(position));
+
+    if (pass) {
+      result.add(BoxHitTestEntry(this, position));
+    }
+
+    return !up && pass;
+  }
+
+  @override
+  bool hitTestSelf(Offset position) => self;
 }
 
 /*
